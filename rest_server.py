@@ -3,16 +3,20 @@ from flask_restful import Resource, Api
 from json import dumps
 from flask_jsonpify import jsonify
 import MySQLdb
+import configparser
 from functools import wraps
 
 app = Flask(__name__)
 api = Api(app)
 
+config = configparser.ConfigParser()
+config.read('config.ini')
+
 def check_auth(username, password):
     """This function is called to check if a username /
     password combination is valid.
     """
-    return username == 'admin' and password == 'secret'
+    return username == config['REST']['username'] and password == config['REST']['password']
 
 def authenticate():
     """Sends a 401 response that enables basic auth"""

@@ -2,6 +2,7 @@ import sys
 import bluetooth 
 import threading
 import MySQLdb
+import configparser
 
 def format_row(row, type, i, rows):
 	str_row = list(map(str, list(row)))
@@ -106,8 +107,11 @@ class echoThread(threading.Thread):
 ###############
 
 def start():
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+
     name = "BluetoothChat"
-    uuid = "8ce255c0-200a-11e0-ac64-0800200c9a66"
+    uuid = config['Bluetooth']['uuid']
 
     server_sock=bluetooth.BluetoothSocket( bluetooth.RFCOMM )
     server_sock.bind(("",bluetooth.PORT_ANY))
