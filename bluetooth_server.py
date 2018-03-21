@@ -106,29 +106,29 @@ class echoThread(threading.Thread):
 # Main Method #
 ###############
 
-def start():
-    config = configparser.ConfigParser()
-    config.read('config.ini')
+#def start():
+config = configparser.ConfigParser()
+config.read('config.ini')
 
-    name = "BluetoothChat"
-    uuid = config['Bluetooth']['uuid']
+name = "BluetoothChat"
+uuid = config['Bluetooth']['uuid']
 
-    server_sock=bluetooth.BluetoothSocket( bluetooth.RFCOMM )
-    server_sock.bind(("",bluetooth.PORT_ANY))
-    server_sock.listen(1)
-    port = server_sock.getsockname()[1]
+server_sock=bluetooth.BluetoothSocket( bluetooth.RFCOMM )
+server_sock.bind(("",bluetooth.PORT_ANY))
+server_sock.listen(1)
+port = server_sock.getsockname()[1]
 
-    bluetooth.advertise_service(server_sock, name, uuid)
+bluetooth.advertise_service(server_sock, name, uuid)
 
+db = MySQLdb.connect(host="localhost",user="klimasensor",passwd="klimasensor",db="klimasensordb")
+
+while True:
+    client_sock, client_info = server_sock.accept()
+    print(client_info, ": connection accepted")
     db = MySQLdb.connect(host="localhost",user="klimasensor",passwd="klimasensor",db="klimasensordb")
+    echo = echoThread(client_sock, client_info, db)
+    echo.setDaemon(True)
+    echo.start()
 
-    while True:
-        client_sock, client_info = server_sock.accept()
-        print(client_info, ": connection accepted")
-        db = MySQLdb.connect(host="localhost",user="klimasensor",passwd="klimasensor",db="klimasensordb")
-        echo = echoThread(client_sock, client_info, db)
-        echo.setDaemon(True)
-        echo.start()
-
-    server_sock.close()
+server_sock.close()
 
