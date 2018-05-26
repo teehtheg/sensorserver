@@ -65,7 +65,7 @@ class SensorDataFrom(Resource):
             cacheFrom = cur
 
         try:
-            rows = cache.fetchmany(MAX_PAGE)
+            rows = cacheFrom.fetchmany(MAX_PAGE)
             result = [SensorRow(row).serialize() for row in rows]
             print("Sending " + str(len(result)) + " records")
 
@@ -113,6 +113,7 @@ MAX_PAGE = 100
 db = MySQLdb.connect(host="localhost", user="klimasensor", passwd="klimasensor", db="klimasensordb")
 
 cache = None
+cacheFrom = None
 
 if __name__ == '__main__':
     try:
