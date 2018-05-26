@@ -6,12 +6,6 @@ import MySQLdb
 import configparser
 from functools import wraps
 
-app = Flask(__name__)
-api = Api(app)
-
-config = configparser.ConfigParser()
-config.read('config.ini')
-
 def check_auth(username, password):
     """This function is called to check if a username /
     password combination is valid.
@@ -40,39 +34,48 @@ class Status(Resource):
 
 class SensorData(Resource):
     @requires_auth
-    def get(self):
-        db = MySQLdb.connect(host="localhost", user="klimasensor", passwd="klimasensor", db="klimasensordb")
-        cur = db.cursor()
-        try:
+    def get(self, pageNr):
+        if (not pageNr or pageNr == 0):
+            pageNr = 0
+            cur = db.cursor()
             cur.execute("SELECT * FROM data")
-            rows = cur.fetchall()
+            cache = cur
+
+        try:
+            rows = cache.fetchmany(MAX_PAGE)
             result = [SensorRow(row).serialize() for row in rows]
             print("Sending " + str(len(result)) + " records")
-            db.close()
-            return jsonify(result)
+
+            if (not rows or len(rows) < MAX_PAGE):
+                return {'data': jsonify(result)}
+            else:
+                return {'data': jsonify(result), 'next': pageNr+1}
 
         except Exception as e:
             print(e)
-            db.close()
             return
 
 class SensorDataFrom(Resource):
     @requires_auth
-    def get(self, fromTs):
-        db = MySQLdb.connect(host="localhost", user="klimasensor", passwd="klimasensor", db="klimasensordb")
-        cur = db.cursor()
-        try:
-            fromTs = str(fromTs).replace("%20", "T")
+    def get(self, fromTs, pageNr):
+        if (not pageNr or pageNr == 0):
+            pageNr = 0
+            cur = db.cursor()
             cur.execute("SELECT * FROM data WHERE Timestamp > %s", (fromTs,))
-            rows = cur.fetchall()
+            cacheFrom = cur
+
+        try:
+            rows = cache.fetchmany(MAX_PAGE)
             result = [SensorRow(row).serialize() for row in rows]
             print("Sending " + str(len(result)) + " records")
-            db.close()
-            return jsonify(result)
+
+            if (not rows or len(rows) < MAX_PAGE):
+                return {'data': jsonify(result)}
+            else:
+                return {'data': jsonify(result), 'next': pageNr+1}
 
         except Exception as e:
             print(e)
-            db.close()
             return
 
 class SensorRow:
@@ -96,15 +99,28 @@ class SensorRow:
             'pressure': self.pressure,
         }
 
+app = Flask(__name__)
+api = Api(app)
+
+config = configparser.ConfigParser()
+config.read('config.ini')
 
 api.add_resource(Status, '/status')
-api.add_resource(SensorData, '/sensordata')
-api.add_resource(SensorDataFrom, '/sensordata/<fromTs>')
+api.add_resource(SensorData, '/sensordata/<pageNr>')
+api.add_resource(SensorDataFrom, '/sensordatafrom/<fromTs>/<pageNr>')
+
+MAX_PAGE = 100
+db = MySQLdb.connect(host="localhost", user="klimasensor", passwd="klimasensor", db="klimasensordb")
+
+cache = None
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
-    app.config.update(
-        DATABASE_URI='sqlite:///flask-openid.db',
-        SECRET_KEY='development key',
-        DEBUG=True
-    )
+    try:
+        app.run(host='0.0.0.0', port=5000)
+        app.config.update(
+            DATABASE_URI='sqlite:///flask-openid.db',
+            SECRET_KEY='development key',
+            DEBUG=True
+        )
+    finally:
+        db.close()
