@@ -35,14 +35,14 @@ class Status(Resource):
 class SensorData(Resource):
     @requires_auth
     def get(self):
-        return SensorData.get(0)
+        return SensorData.get(self, 0)
 
     @requires_auth
     def get(self, pageNr):
         if (not pageNr or pageNr <= 0):
             pageNr = 0
 
-        fromId = pageNr * MAX_PAGE
+        fromId = int(pageNr) * MAX_PAGE
         toId = fromId + MAX_PAGE - 1
         cur = db.cursor()
         cur.execute("SELECT * FROM data WHERE id BETWEEN %s AND %s", (fromId, toId))
@@ -64,7 +64,7 @@ class SensorData(Resource):
 class SensorDataFrom(Resource):
     @requires_auth
     def get(self):
-        return SensorDataFrom.get(0)
+        return SensorDataFrom.get(self, 0)
 
     @requires_auth
     def get(self, fromTs, pageNr):
@@ -77,7 +77,7 @@ class SensorDataFrom(Resource):
         try:
             row = cur.fetchone()
             startId = SensorRow(row).id
-            fromId = startId + pageNr * MAX_PAGE
+            fromId = startId + int(pageNr) * MAX_PAGE
             toId = fromId + MAX_PAGE - 1
 
             cur = db.cursor()
