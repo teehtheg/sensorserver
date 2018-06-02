@@ -52,7 +52,7 @@ class SensorData(Resource):
             pageNr = 0
 
         fromId = int(pageNr) * MAX_PAGE + 1
-        toId = fromId + MAX_PAGE
+        toId = fromId + MAX_PAGE - 1
         cur = db.cursor()
         cur.execute("SELECT * FROM data WHERE id BETWEEN %s AND %s", (fromId, toId))
 
@@ -96,7 +96,7 @@ class SensorDataFrom(Resource):
             row = cur.fetchone()
             startId = SensorRow(row).id
             fromId = startId + int(pageNr) * MAX_PAGE + 1
-            toId = fromId + MAX_PAGE
+            toId = fromId + MAX_PAGE - 1
 
             cur = db.cursor()
             cur.execute("SELECT * FROM data WHERE Timestamp > %s AND id BETWEEN %s AND %s", (fromTs,fromId,toId))
