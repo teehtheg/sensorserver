@@ -3,6 +3,7 @@ from flask_restful import Resource, Api
 from json import dumps
 from flask_jsonpify import jsonify
 import MySQLdb
+import datetime
 import configparser
 from functools import wraps
 
@@ -27,6 +28,12 @@ def requires_auth(f):
             return authenticate()
         return f(*args, **kwargs)
     return decorated
+
+def displayTimeElapsed(start):
+    end = datetime.datetime.now()
+    diff = end - start
+    print("took " + diff.total_seconds() + " seconds")
+
 
 class Status(Resource):
     def get(self):
@@ -54,6 +61,8 @@ class SensorData(Resource):
         if (not pageNr or pageNr <= 0):
             pageNr = 0
 
+        start = datetime.datetime.now()
+
         fromId = int(pageNr) * MAX_PAGE + 1
         toId = fromId + MAX_PAGE - 1
         cur = db.cursor()
@@ -65,12 +74,17 @@ class SensorData(Resource):
             print("Sending " + str(len(result)) + " records")
 
             if (not rows or len(rows) < MAX_PAGE):
-                return jsonify(Response(result).serialize())
+                response = jsonify(Response(result).serialize())
             else:
-                return jsonify(Response(result, int(pageNr) + 1).serialize())
+                response = jsonify(Response(result, int(pageNr) + 1).serialize())
+
+            displayTimeElapsed(start)
+            return response
+
 
         except Exception as e:
             print(e)
+            displayTimeElapsed(start)
             return
 
 class SensorDataFromCount(Resource):
@@ -95,6 +109,8 @@ class SensorDataFrom(Resource):
         if (not pageNr or pageNr <= 0):
             pageNr = 0
 
+        start = datetime.datetime.now()
+
         cur = db.cursor()
         cur.execute("SELECT * FROM data WHERE Timestamp > %s", (fromTs,))
 
@@ -112,9 +128,12 @@ class SensorDataFrom(Resource):
             print("Sending " + str(len(result)) + " records")
 
             if (not rows or len(rows) < MAX_PAGE):
-                return jsonify(Response(result).serialize())
+                response =  jsonify(Response(result).serialize())
             else:
-                return jsonify(Response(result, int(pageNr) + 1).serialize())
+                response = jsonify(Response(result, int(pageNr) + 1).serialize())
+
+            displayTimeElapsed(start)
+            return response
 
         except Exception as e:
             print(e)
