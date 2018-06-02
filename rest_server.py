@@ -101,12 +101,12 @@ class Response:
     data = None
     next = None
 
+    def __init__(self, data):
+        self.data = data
+
     def __init__(self, data, next):
         self.data = data
         self.next = next
-
-    def __init__(self, data):
-        self.data = data
 
     def serialize(self):
         if (not next):
