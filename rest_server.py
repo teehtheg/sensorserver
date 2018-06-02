@@ -34,15 +34,21 @@ class Status(Resource):
 
 class SensorData(Resource):
     @requires_auth
+    def get(self):
+        return SensorData.get(0)
+
+    @requires_auth
     def get(self, pageNr):
-        if (not pageNr or pageNr == 0):
+        if (not pageNr or pageNr <= 0):
             pageNr = 0
-            cur = db.cursor()
-            cur.execute("SELECT * FROM data")
-            cache = cur
+
+        fromId = pageNr * MAX_PAGE
+        toId = fromId + MAX_PAGE - 1
+        cur = db.cursor()
+        cur.execute("SELECT * FROM data WHERE id BETWEEN %s AND %s", (fromId, toId))
 
         try:
-            rows = cache.fetchmany(MAX_PAGE)
+            rows = cur.fetchall()
             result = [SensorRow(row).serialize() for row in rows]
             print("Sending " + str(len(result)) + " records")
 
@@ -57,15 +63,27 @@ class SensorData(Resource):
 
 class SensorDataFrom(Resource):
     @requires_auth
+    def get(self):
+        return SensorDataFrom.get(0)
+
+    @requires_auth
     def get(self, fromTs, pageNr):
-        if (not pageNr or pageNr == 0):
+        if (not pageNr or pageNr <= 0):
             pageNr = 0
-            cur = db.cursor()
-            cur.execute("SELECT * FROM data WHERE Timestamp > %s", (fromTs,))
-            cacheFrom = cur
+
+        cur = db.cursor()
+        cur.execute("SELECT * FROM data WHERE Timestamp > %s", (fromTs,))
 
         try:
-            rows = cacheFrom.fetchmany(MAX_PAGE)
+            row = cur.fetchone()
+            startId = SensorRow(row).id
+            fromId = startId + pageNr * MAX_PAGE
+            toId = fromId + MAX_PAGE - 1
+
+            cur = db.cursor()
+            cur.execute("SELECT * FROM data WHERE Timestamp > %s AND id BETWEEN %s AND %s", (fromTs,fromId,toId))
+
+            rows = cur.fetchall()
             result = [SensorRow(row).serialize() for row in rows]
             print("Sending " + str(len(result)) + " records")
 
@@ -90,6 +108,7 @@ class SensorRow:
             self.humidity = array[1]
             self.temperature = array[2]
             self.pressure = array[3]
+            self.id = array[4]
 
     def serialize(self):
         return {
@@ -105,15 +124,16 @@ api = Api(app)
 config = configparser.ConfigParser()
 config.read('config.ini')
 
-api.add_resource(Status, '/status')
-api.add_resource(SensorData, '/sensordata/<pageNr>')
-api.add_resource(SensorDataFrom, '/sensordatafrom/<fromTs>/<pageNr>')
+api.add_resource(Status,
+                 '/status')
+api.add_resource(SensorData,
+                 '/sensordata',
+                 '/sensordata/<pageNr>')
+api.add_resource(SensorDataFrom,
+                 '/sensordatafrom/<fromTs>/<pageNr>')
 
 MAX_PAGE = 100
 db = MySQLdb.connect(host="localhost", user="klimasensor", passwd="klimasensor", db="klimasensordb")
-
-cache = None
-cacheFrom = None
 
 if __name__ == '__main__':
     try:
