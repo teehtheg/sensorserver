@@ -53,9 +53,9 @@ class SensorData(Resource):
             print("Sending " + str(len(result)) + " records")
 
             if (not rows or len(rows) < MAX_PAGE):
-                return {'data': jsonify(result)}
+                return jsonify(Response(result))
             else:
-                return {'data': jsonify(result), 'next': pageNr+1}
+                return jsonify(Response(result, int(pageNr) + 1))
 
         except Exception as e:
             print(e)
@@ -88,22 +88,44 @@ class SensorDataFrom(Resource):
             print("Sending " + str(len(result)) + " records")
 
             if (not rows or len(rows) < MAX_PAGE):
-                return {'data': jsonify(result)}
+                return jsonify(Response(result))
             else:
-                return {'data': jsonify(result), 'next': pageNr+1}
+                return jsonify(Response(result, int(pageNr) + 1))
 
         except Exception as e:
             print(e)
             return
+
+
+class Response:
+    data = None
+    next = None
+
+    def __init__(self, data, next):
+        self.data = data
+        self.next = next
+
+    def serialize(self):
+        if (not next):
+            return {
+                'data': self.data
+            }
+        else:
+            return {
+                'data': self.data,
+                'next': self.next
+            }
+
 
 class SensorRow:
     timestamp = None
     pressure = None
     temperature = None
     humidity = None
+    id = None
 
     def __init__(self, array):
-        if (len(array) >= 4):
+        if (len(array) >= 5):
             self.timestamp = array[0]
             self.humidity = array[1]
             self.temperature = array[2]
