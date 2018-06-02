@@ -137,6 +137,7 @@ class SensorRow:
 
     def serialize(self):
         return {
+            'id': self.id,
             'timestamp': self.timestamp,
             'humidity': self.humidity,
             'temperature': self.temperature,
