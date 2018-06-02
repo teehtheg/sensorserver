@@ -53,9 +53,9 @@ class SensorData(Resource):
             print("Sending " + str(len(result)) + " records")
 
             if (not rows or len(rows) < MAX_PAGE):
-                return jsonify(Response(result))
+                return jsonify(Response(result).serialize())
             else:
-                return jsonify(Response(result, int(pageNr) + 1))
+                return jsonify(Response(result, int(pageNr) + 1).serialize())
 
         except Exception as e:
             print(e)
@@ -88,9 +88,9 @@ class SensorDataFrom(Resource):
             print("Sending " + str(len(result)) + " records")
 
             if (not rows or len(rows) < MAX_PAGE):
-                return jsonify(Response(result))
+                return jsonify(Response(result).serialize())
             else:
-                return jsonify(Response(result, int(pageNr) + 1))
+                return jsonify(Response(result, int(pageNr) + 1).serialize())
 
         except Exception as e:
             print(e)
@@ -111,11 +111,11 @@ class Response:
     def serialize(self):
         if (not next):
             return {
-                'data': jsonify(self.data)
+                'data': self.data
             }
         else:
             return {
-                'data': jsonify(self.data),
+                'data': self.data,
                 'next': self.next
             }
 
