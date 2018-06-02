@@ -32,7 +32,7 @@ def requires_auth(f):
 def displayTimeElapsed(start):
     end = datetime.datetime.now()
     diff = end - start
-    print("took " + diff.total_seconds() + " seconds")
+    print("took " + str(diff.total_seconds()) + " seconds")
 
 
 class Status(Resource):
