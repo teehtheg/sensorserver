@@ -39,7 +39,7 @@ class SensorDataCount(Resource):
         cur.execute("SELECT count(*) FROM data")
         try:
             num = cur.fetchone()
-            return jsonify(count=num)
+            return jsonify(count=num[0])
 
         except Exception as e:
             print(e)
@@ -77,7 +77,7 @@ class SensorDataFromCount(Resource):
         cur.execute("SELECT count(*) FROM data WHERE Timestamp > %s", (fromTs,))
         try:
             num = cur.fetchone()
-            return jsonify(count=num)
+            return jsonify(count=num[0])
 
         except Exception as e:
             print(e)
