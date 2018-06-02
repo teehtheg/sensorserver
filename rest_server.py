@@ -32,6 +32,19 @@ class Status(Resource):
     def get(self):
         return {'status': 'ok'}
 
+class SensorDataCount(Resource):
+    @requires_auth
+    def get(self):
+        cur = db.cursor()
+        cur.execute("SELECT count(*) FROM data")
+        try:
+            num = cur.fetchone()
+            return jsonify(num)
+
+        except Exception as e:
+            print(e)
+            return
+
 class SensorData(Resource):
     @requires_auth
     def get(self, pageNr=0):
@@ -52,6 +65,19 @@ class SensorData(Resource):
                 return jsonify(Response(result).serialize())
             else:
                 return jsonify(Response(result, int(pageNr) + 1).serialize())
+
+        except Exception as e:
+            print(e)
+            return
+
+class SensorDataFromCount(Resource):
+    @requires_auth
+    def get(self, fromTs):
+        cur = db.cursor()
+        cur.execute("SELECT count(*) FROM data WHERE Timestamp > %s", (fromTs,))
+        try:
+            num = cur.fetchone()
+            return jsonify(num)
 
         except Exception as e:
             print(e)
@@ -141,9 +167,12 @@ config.read('config.ini')
 
 api.add_resource(Status,
                  '/status')
+api.add_resource(SensorDataCount,
+                 '/sensordata/count')
 api.add_resource(SensorData,
-                 '/sensordata',
                  '/sensordata/<pageNr>')
+api.add_resource(SensorDataFromCount,
+                 '/sensordatafrom/<fromTs>/count')
 api.add_resource(SensorDataFrom,
                  '/sensordatafrom/<fromTs>/<pageNr>')
 
