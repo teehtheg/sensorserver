@@ -111,11 +111,11 @@ class Response:
     def serialize(self):
         if (not next):
             return {
-                'data': self.data
+                'data': jsonify(self.data)
             }
         else:
             return {
-                'data': self.data,
+                'data': jsonify(self.data),
                 'next': self.next
             }
 
