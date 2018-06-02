@@ -34,11 +34,7 @@ class Status(Resource):
 
 class SensorData(Resource):
     @requires_auth
-    def get(self):
-        return SensorData.get(self, 0)
-
-    @requires_auth
-    def get(self, pageNr):
+    def get(self, pageNr=0):
         if (not pageNr or pageNr <= 0):
             pageNr = 0
 
@@ -63,11 +59,7 @@ class SensorData(Resource):
 
 class SensorDataFrom(Resource):
     @requires_auth
-    def get(self):
-        return SensorDataFrom.get(self, 0)
-
-    @requires_auth
-    def get(self, fromTs, pageNr):
+    def get(self, fromTs, pageNr=0):
         if (not pageNr or pageNr <= 0):
             pageNr = 0
 
@@ -101,10 +93,7 @@ class Response:
     data = None
     next = None
 
-    def __init__(self, data):
-        self.data = data
-
-    def __init__(self, data, next):
+    def __init__(self, data, next=None):
         self.data = data
         self.next = next
 
