@@ -105,6 +105,9 @@ class Response:
         self.data = data
         self.next = next
 
+    def __init__(self, data):
+        self.data = data
+
     def serialize(self):
         if (not next):
             return {
